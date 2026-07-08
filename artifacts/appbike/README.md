@@ -50,10 +50,9 @@ En producción, el backend FastAPI sirve el frontend compilado desde `dist/publi
    ```
    Esto genera `dist/public/`, que FastAPI sirve automáticamente. **`dist/` debe ir incluido en el repo** (el `.gitignore` ya lo permite).
 
-2. **Subir el código** al repo `github.com/dm8918/appbike`. El contenido de esta carpeta (`artifacts/appbike/`) debe quedar en la **raíz del repo**, incluyendo:
-   - `app.yaml` y `app.yml` (idénticos; Databricks debe encontrar uno de los dos en la raíz)
-   - `dist/public/` (frontend compilado)
-   - `server/` y `requirements.txt`
+2. **Subir el código** al repo `github.com/dm8918/appbike`. Hay dos opciones soportadas:
+   - **Repo completo del workspace de Replit** (lo más simple si sincronizas desde Replit): la raíz del workspace ya incluye `app.yaml`, `app.yml` y `requirements.txt` que arrancan la app con `uvicorn --app-dir artifacts/appbike`. Asegúrate de que `artifacts/appbike/dist/` esté commiteado (el `.gitignore` raíz ya lo permite).
+   - **Solo la carpeta `artifacts/appbike/` en la raíz del repo**: también incluye sus propios `app.yaml`/`app.yml` y `requirements.txt`.
 
 3. **Crear la App en Databricks**: Workspace → Compute → Apps → *Create App* → conectar al repo de GitHub. Databricks ejecuta el `command` de `app.yaml` (uvicorn en el puerto 8000).
 

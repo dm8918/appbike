@@ -1,0 +1,19 @@
+command:
+  - "python"
+  - "-m"
+  - "uvicorn"
+  - "--app-dir"
+  - "artifacts/appbike"
+  - "server.main:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+env:
+  - name: "ADMIN_EMAILS"
+    value: "nico.tagle1@gmail.com"
+  # Recomendado: crea un secreto en Databricks y agrégalo como recurso de la App
+  # con la clave "session-secret", luego descomenta estas líneas:
+  # - name: "SESSION_SECRET"
+  #   valueFrom: "session-secret"
