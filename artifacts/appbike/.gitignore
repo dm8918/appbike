@@ -1,5 +1,5 @@
 __pycache__/
 *.pyc
 server/data/
-dist/
 .tsbuildinfo
+node_modules/

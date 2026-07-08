@@ -48,19 +48,28 @@ En producción, el backend FastAPI sirve el frontend compilado desde `dist/publi
    ```bash
    pnpm install && pnpm run build
    ```
-   Esto genera `dist/public/`, que FastAPI sirve automáticamente.
+   Esto genera `dist/public/`, que FastAPI sirve automáticamente. **`dist/` debe ir incluido en el repo** (el `.gitignore` ya lo permite).
 
-2. **Subir el código** al repo `github.com/dm8918/appbike` (contenido de `artifacts/appbike/`, incluyendo `dist/public`, `server/`, `requirements.txt` y `app.yaml`).
+2. **Subir el código** al repo `github.com/dm8918/appbike`. El contenido de esta carpeta (`artifacts/appbike/`) debe quedar en la **raíz del repo**, incluyendo:
+   - `app.yaml` y `app.yml` (idénticos; Databricks debe encontrar uno de los dos en la raíz)
+   - `dist/public/` (frontend compilado)
+   - `server/` y `requirements.txt`
 
-3. **Crear la App en Databricks**: Workspace → Compute → Apps → *Create App* → conectar al repo de GitHub. Databricks detecta `app.yaml` y ejecuta uvicorn.
+3. **Crear la App en Databricks**: Workspace → Compute → Apps → *Create App* → conectar al repo de GitHub. Databricks ejecuta el `command` de `app.yaml` (uvicorn en el puerto 8000).
 
 4. **Configurar secretos/entorno** en la App:
-   - `SESSION_SECRET`: una cadena larga y aleatoria.
+   - `SESSION_SECRET` (recomendado): crea un secreto en Databricks, agrégalo como recurso de la App con clave `session-secret` y descomenta las líneas correspondientes en `app.yaml`.
    - `DATABASE_URL` (recomendado): conexión a Lakebase/Postgres para que los datos persistan. Sin esto se usa SQLite, que puede perderse al reiniciar la app.
    - `UPLOAD_DIR`: idealmente una ruta a un Volume de Unity Catalog (ej. `/Volumes/main/default/bicioffice_fotos`) para que las fotos persistan.
-   - `ADMIN_EMAILS`: si quieres agregar más administradores.
+   - `ADMIN_EMAILS`: ya viene en `app.yaml`; edítalo si quieres más administradores.
 
 5. **Listo**: la app queda disponible en la URL que asigna Databricks. El primer usuario que se registre con `nico.tagle1@gmail.com` será administrador automáticamente.
+
+### Solución de problemas
+
+- **"No command to run. pnpm apps must specify the start command in app.yaml"**: Databricks detectó el `package.json` (app Node) pero no encontró `app.yaml`/`app.yml` con `command` en la carpeta raíz de la App. Verifica que `app.yaml` esté en la raíz del repo (no dentro de una subcarpeta) y que esté commiteado.
+- **La página carga pero se ve en blanco / 404**: falta `dist/public` en el repo. Ejecuta `pnpm run build` y commitea la carpeta `dist/`.
+- **Los datos se pierden al reiniciar**: configura `DATABASE_URL` (Lakebase) y `UPLOAD_DIR` (Volume).
 
 ## API
 
