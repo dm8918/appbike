@@ -1,0 +1,12 @@
+command:
+  - "uvicorn"
+  - "server.main:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+env:
+  - name: "SESSION_SECRET"
+    valueFrom: "session-secret"
+  - name: "ADMIN_EMAILS"
+    value: "nico.tagle1@gmail.com"

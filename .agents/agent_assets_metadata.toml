@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "7iWAcUWoR4Lou1b9C7s4N"
+uri = "file://artifacts/appbike/public/icons/icon-512.png"
+type = "image"
+title = "bike app icon"

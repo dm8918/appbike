@@ -1,44 +1,54 @@
-# [Project name]
+# BiciOffice
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+App PWA en español, mobile-first, para que colegas de oficina registren sesiones de bici estática (fecha, km, foto opcional) con gamificación: puntos, niveles, rachas, insignias y ranking.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Workflows: `artifacts/appbike: web` (Vite, port 22521) y `artifacts/appbike: bike-api` (FastAPI/uvicorn, port 22531)
+- `pnpm --filter @workspace/appbike run typecheck` — typecheck del frontend
+- `pnpm --filter @workspace/appbike run build` — build del frontend a `artifacts/appbike/dist/public` (lo sirve FastAPI en producción)
+- API en dev: `localhost:80/bike-api/...` (proxy compartido); en producción: `/api/...`
+- Env: `SESSION_SECRET` (cookies firmadas), `DATABASE_URL` (ya seteado globalmente → Postgres dev de Replit; sin él usa SQLite), `UPLOAD_DIR`, `ADMIN_EMAILS`
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React + Vite + TypeScript + Tailwind, React Query, wouter (artifact `appbike`)
+- Backend: Python 3.12 + FastAPI + SQLAlchemy + bcrypt + itsdangerous (cookies de sesión firmadas)
+- DB: Postgres en dev (env global `DATABASE_URL`); SQLite como fallback portable
+- No usa el api-server Express ni el codegen OpenAPI del monorepo (backend Python a pedido del usuario)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/appbike/src/lib/api.ts` — cliente API del frontend (fuente de verdad del contrato)
+- `artifacts/appbike/server/` — backend FastAPI (main.py rutas, models.py, gamification.py, security.py, db.py)
+- `artifacts/appbike/public/` — manifest PWA, sw.js, íconos
+- `artifacts/appbike/app.yaml` + `README.md` — despliegue en Databricks Apps
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Backend Python (FastAPI) elegido explícitamente por el usuario para portarlo a Databricks Apps (repo github.com/dm8918/appbike)
+- Rutas API montadas en `/api` Y `/bike-api` para funcionar igual en dev (proxy Replit) y producción
+- En producción FastAPI sirve el frontend compilado (`dist/public`) con fallback SPA — un solo proceso
+- Gamificación: puntos = km × 10, 7 niveles en español, 8 insignias, rachas por días consecutivos
+- Admin por email: `ADMIN_EMAILS` (default `nico.tagle1@gmail.com`); el flag admin se asigna al registrarse
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Registro/login con email y contraseña (bcrypt + cookie firmada)
+- Registrar sesión: fecha, km, foto de evidencia opcional (acceso a fotos solo dueño/admin)
+- Dashboard con puntos, nivel, racha e insignias; historial con borrado; ranking semanal/mensual/total
+- Panel admin (`/admin`) para ver resultados de todos los usuarios
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Comunicarse en español
+- El usuario despliega él mismo en Databricks Apps; no publicar en Replit sin preguntar
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- `DATABASE_URL` está seteado globalmente en el workspace → el backend usa Postgres dev aunque el default de código sea SQLite; borrar `server/data/` NO borra los datos
+- Hay 2 usuarios demo sembrados (laura.demo@oficina.com, pedro.demo@oficina.com, contraseña BiciDemo2026!)
+- El workflow de bike-api necesita ruta absoluta en el `cd` (el cwd del workflow no es la raíz del repo)
 
 ## Pointers
 

@@ -1,0 +1,2 @@
+- [BiciOffice deploy target](bicioffice-deploy.md) — user self-deploys to Databricks Apps; never suggestDeploy on Replit without asking. Backend is Python FastAPI, not the shared Express server.
+- [Global DATABASE_URL](global-database-url.md) — workspace sets DATABASE_URL globally, so any backend with a Postgres fallback silently uses dev Postgres instead of SQLite.

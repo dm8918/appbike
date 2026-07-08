@@ -1,0 +1,42 @@
+kind = "web"
+previewPath = "/"
+title = "BiciOffice"
+version = "1.0.0"
+id = "artifacts/appbike"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22521
+
+[services.development]
+run = "pnpm --filter @workspace/appbike run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/appbike", "run", "build" ]
+publicDir = "artifacts/appbike/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22521"
+BASE_PATH = "/"
+
+[[services]]
+name = "bike-api"
+paths = [ "/bike-api" ]
+localPort = 22531
+
+[services.development]
+run = "cd /home/runner/workspace/artifacts/appbike && python -m uvicorn server.main:app --host 0.0.0.0 --port 22531"
+
+[services.env]
+PORT = "22531"
