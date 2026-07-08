@@ -76,7 +76,28 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     let message = res.statusText;
     try {
       const body = await res.json();
-      if (body && typeof body.detail === "string") message = body.detail;
+      if (body && typeof body.detail === "string") {
+        message = body.detail;
+      } else if (body && Array.isArray(body.detail)) {
+        // FastAPI validation errors (422)
+        message = body.detail
+          .map((e: { loc?: unknown[]; msg?: string }) => {
+            const field = Array.isArray(e.loc) ? String(e.loc[e.loc.length - 1]) : "";
+            const fieldNames: Record<string, string> = {
+              email: "Correo electrónico",
+              password: "Contraseña",
+              name: "Nombre",
+              date: "Fecha",
+              km: "Kilómetros",
+            };
+            const label = fieldNames[field] ?? field;
+            let msg = e.msg ?? "valor inválido";
+            if (msg.includes("at least 8 characters")) msg = "debe tener al menos 8 caracteres";
+            else if (msg.includes("not a valid email")) msg = "no es un correo válido";
+            return label ? `${label}: ${msg}` : msg;
+          })
+          .join(". ");
+      }
     } catch {
       // ignore
     }
