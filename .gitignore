@@ -4,6 +4,8 @@
 dist
 !artifacts/appbike/dist
 !artifacts/appbike/dist/**
+!databricks_app/dist
+!databricks_app/dist/**
 tmp
 out-tsc
 *.tsbuildinfo

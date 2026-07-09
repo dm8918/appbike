@@ -50,11 +50,13 @@ En producción, el backend FastAPI sirve el frontend compilado desde `dist/publi
    ```
    Esto genera `dist/public/`, que FastAPI sirve automáticamente. **`dist/` debe ir incluido en el repo** (el `.gitignore` ya lo permite).
 
-2. **Subir el código** al repo `github.com/dm8918/appbike`. Hay dos opciones soportadas:
-   - **Repo completo del workspace de Replit** (lo más simple si sincronizas desde Replit): la raíz del workspace ya incluye `app.yaml`, `app.yml` y `requirements.txt` que arrancan la app con `uvicorn --app-dir artifacts/appbike`. Asegúrate de que `artifacts/appbike/dist/` esté commiteado (el `.gitignore` raíz ya lo permite).
-   - **Solo la carpeta `artifacts/appbike/` en la raíz del repo**: también incluye sus propios `app.yaml`/`app.yml` y `requirements.txt`.
+2. **Generar la carpeta de despliegue limpia** (`databricks_app/` en la raíz del repo):
+   ```bash
+   bash artifacts/appbike/build_databricks.sh
+   ```
+   Esta carpeta contiene **solo Python + el frontend compilado** (`app.yaml`, `requirements.txt`, `server/`, `dist/public/`), sin `package.json`. Esto es clave: Databricks Apps instala dependencias de Node si ve un `package.json`, y el `package.json` del monorepo hace fallar la instalación con "Error installing packages".
 
-3. **Crear la App en Databricks**: Workspace → Compute → Apps → *Create App* → conectar al repo de GitHub. Databricks ejecuta el `command` de `app.yaml` (uvicorn en el puerto 8000).
+3. **Subir el repo a GitHub** y **crear la App en Databricks** apuntando la ruta del código fuente (*source code path*) a la carpeta `databricks_app/` — NO a la raíz del repo. Databricks detecta la app como Python, instala `requirements.txt` con pip y ejecuta el `command` de `app.yaml` (uvicorn en el puerto 8000).
 
 4. **Configurar secretos/entorno** en la App:
    - `SESSION_SECRET` (recomendado): crea un secreto en Databricks, agrégalo como recurso de la App con clave `session-secret` y descomenta las líneas correspondientes en `app.yaml`.
@@ -66,9 +68,11 @@ En producción, el backend FastAPI sirve el frontend compilado desde `dist/publi
 
 ### Solución de problemas
 
-- **"No command to run. pnpm apps must specify the start command in app.yaml"**: Databricks detectó el `package.json` (app Node) pero no encontró `app.yaml`/`app.yml` con `command` en la carpeta raíz de la App. Verifica que `app.yaml` esté en la raíz del repo (no dentro de una subcarpeta) y que esté commiteado.
-- **La página carga pero se ve en blanco / 404**: falta `dist/public` en el repo. Ejecuta `pnpm run build` y commitea la carpeta `dist/`.
+- **"No command to run. pnpm apps must specify the start command in app.yaml"**: la ruta de código fuente de la App no contiene `app.yaml`/`app.yml` con `command`. Apunta la App a la carpeta `databricks_app/`.
+- **"Error installing packages"**: la App está apuntando a una carpeta con `package.json` (Databricks intenta instalar dependencias de Node del monorepo). Apunta la App a `databricks_app/`, que no tiene `package.json`.
+- **La página carga pero se ve en blanco / 404**: falta `dist/public` en la carpeta desplegada. Vuelve a ejecutar `bash artifacts/appbike/build_databricks.sh` y commitea `databricks_app/`.
 - **Los datos se pierden al reiniciar**: configura `DATABASE_URL` (Lakebase) y `UPLOAD_DIR` (Volume).
+- Tras cambiar el frontend o el servidor, **regenera** `databricks_app/` con el script y vuelve a subir el repo.
 
 ## API
 
